@@ -541,7 +541,7 @@ def text(txt, fontfamily, fontsize, fill=(0, 0, 0),
          h_align="center", v_align="center",
          stroke=(0, 0, 0), stroke_width=0,
          fontweight="normal", fontslant="normal",
-         angle=0, xy=[0, 0], y_origin="top"):
+         angle=0, xy=[0, 0], y_origin="top", anchor=[0, 0]):
     """Create a text object.
 
     Parameters
@@ -594,4 +594,4 @@ def text(txt, fontfamily, fontsize, fill=(0, 0, 0),
             ctx.stroke()
 
     return (Element(draw).scale(1, 1 if (y_origin == "top") else -1)
-            .rotate(angle))
+            .rotate(angle, center=anchor))
