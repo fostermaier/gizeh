@@ -542,7 +542,7 @@ def text(txt, fontfamily, fontsize, fill=(0, 0, 0),
          h_align="center", v_align="center",
          stroke=(0, 0, 0), stroke_width=0,
          fontweight="normal", fontslant="normal",
-         angle=0, xy=[0, 0], y_origin="top", anchor=[0, 0]):
+         angle=0, xy=[0, 0], y_origin="top", anchor=[0, 0], fit_width=0):
     """Create a text object.
 
     Parameters
@@ -580,10 +580,26 @@ def text(txt, fontfamily, fontsize, fill=(0, 0, 0),
         ctx.select_font_face(fontfamily, fontslant, fontweight)
         ctx.set_font_size(fontsize)
         xbear, ybear, w, h, xadvance, yadvance = ctx.text_extents(txt)
-        xshift = {"left": 0, "center": -w / 2, "right": -w}[h_align] - xbear
-        yshift = {"top": 0, "center": -h / 2, "bottom": -h}[v_align] - ybear
+        asc, desc, _, _, _ = ctx.font_extents()
+
+        # required for right-aligned text
+        if (fit_width != 0) and (fit_width < w):
+            w_shift = fit_width
+        else:
+            w_shift = w
+
+        xshift = {"left": 0, "center": -w_shift / 2, "right": -w_shift}[h_align] - xbear
+        yshift = {"top": 0, "center": - (asc - desc)/2, "bottom": -h}[v_align] - ybear
         new_xy = np.array(xy) + np.array([xshift, yshift])
         ctx.move_to(*new_xy)
+
+        # post-scaling for props['data']['autofontwidth'] != 'True'
+        if (fit_width != 0) and (fit_width < w):
+            # re-measure width with dot because whitespace is trimmed
+            xbear, ybear, w, h, xadvance, yadvance = ctx.text_extents(txt + '.')
+            scale_factor = fit_width/xadvance
+            ctx.scale(scale_factor, 1)
+
         ctx.text_path(txt)
         _set_source(ctx, fill)
         ctx.fill()
